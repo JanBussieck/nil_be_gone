@@ -1,9 +1,6 @@
 # NilBeGone
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/nil_be_gone`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
-
+Nil be gone provides an `Optional` monad to be used instead of explicit null checks or global monkey patched abominations such as `try`. Monads have often been described as "programmable semicolons" meaning that they allow you to perform some standard operation while chaining operations. For instance unwrap or flatten an array of input, or perform nil checks before passing the result of one operation to the next, this is what this monad does.
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -22,8 +19,46 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Say you are given an instance of a student object and you want to find out the ranking of his university town.
+You might define a method such as this:
 
+```ruby
+def town_ranking_for(student)
+  unless student.nil?
+    university = student.university
+
+    unless university.nil?
+      uni_town = university.uni_town
+
+      unless uni_town.nil?
+        ranking = uni_town.ranking
+
+      end
+    end
+  end
+end
+```
+
+Nil checks are a pervasive code smell in many ruby project, nil_be_gone's Optional type expresses this fact that values can either be Just that value or Nothing, it's implementation of bind is `and_then` which allows you to chain operations on `Optional` types, it's `return` methods which retrieves the value from Optional is `value` and the `bind` operation which wraps an object in the monad is defined by `self.from_value`, so the above code would look like this:
+
+```ruby
+def town_ranking_for(student)
+  Optional.new(student).and_then { |student|
+    student.university }.and_then { |university|
+    university.uni_town }.and_then { |uni_town|
+    uni_town.ranking}.value
+end
+```
+
+`Optional` implements method missing such that any method call served in an `and_then` block and automatically forwarded to the value (if it is not nil), so the above code reduces to:
+
+```ruby
+def town_ranking_for(student)
+  Optional.new(student).university.uni_town.ranking
+end
+```
+
+Note that if we stipulate to take an object of type Optional, wecan simply chain operations and not concern ourselves with whether the return value is nil or wrapping the argument in an `Optional` type. This allows us to isolate this concern at the borders of our system, the **producers** of values such as database query methods simply wrap the result in an `Optional` before passing it on to the rest of the system which can confidently perform operations on it, with the eventual **consumer** of the result having to unwrap it by calling value on `Optional`. 
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
