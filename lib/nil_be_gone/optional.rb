@@ -26,5 +26,11 @@ module NilBeGone
         value.public_send(*args, &block)
       end
     end
+
+    def respond_to_missing?(method_name, include_private = false)
+      super || and_then do |value|
+        value.respond_to?(method_name)
+      end
+    end
   end
 end
