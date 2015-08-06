@@ -7,7 +7,7 @@ class Monad
     raise NotImplementedError
   end
 
-  def from_value
+  def self.from_value
     raise NotImplementedError
   end
 

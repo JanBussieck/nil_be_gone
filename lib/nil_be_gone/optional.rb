@@ -10,13 +10,13 @@ module NilBeGone
 
     def and_then(&block)
       if value.nil?
-        from_value(nil)
+        Optional.from_value(nil)
       else
-        from_value(block.call(value))
+        Optional.from_value(block.call(value))
       end
     end
 
-    def from_value(value)
+    def self.from_value(value)
       Optional.new(value)
     end
 
